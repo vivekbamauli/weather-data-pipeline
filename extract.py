@@ -3,7 +3,7 @@ import json
 import requests
 from kafka import KafkaProducer
 
-API_KEY = "860d9708e8def73b6628a0d278c642e6"
+API_KEY = "open weather api key"
 # city = "delhi"
 KAFKA_TOPIC = "bamauli"
 KAFKA_BROKER = "localhost:9092"  
@@ -29,3 +29,4 @@ while True:
         producer.send(KAFKA_TOPIC,data)
         producer.flush()
         time.sleep(10)
+
