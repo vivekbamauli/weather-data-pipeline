@@ -2,18 +2,11 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, current_timestamp
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, IntegerType
 
-# ---------------------
-# Create Spark Session
-# ---------------------
 spark = SparkSession.builder \
-    .appName("WeatherKafkaToPostgres") \
+    .appName("stream_test") \
     .getOrCreate()
 
 spark.sparkContext.setLogLevel("WARN")
-
-# ---------------------
-# Kafka Stream
-# ---------------------
 df = (
     spark.readStream
         .format("kafka")
@@ -25,9 +18,7 @@ df = (
 
 df1 = df.selectExpr("CAST(value AS STRING)")
 
-# ---------------------
-# Schema
-# ---------------------
+
 schema = StructType([
     StructField("coord", StructType([
         StructField("lon", FloatType()),
@@ -50,17 +41,12 @@ clean_df = json_df.select(
     col("data.name").alias("city")
 )
 
-# ---------------------
-# PostgreSQL Setup
-# ---------------------
+
 db_url = "jdbc:postgresql://localhost:5432/clickstream_db"
 db_table = "weather_stream"
 db_user = "postgres"
-db_password = "Bamauli@8171"
+db_password = "your password"
 
-# ---------------------
-# Write to PostgreSQL Function
-# ---------------------
 def write_to_pg(batch_df, batch_id):
     batch_df = batch_df.withColumn("batch_time", current_timestamp())
 
@@ -74,9 +60,7 @@ def write_to_pg(batch_df, batch_id):
         .mode("append") \
         .save()
 
-# ---------------------
-# Start Stream
-# ---------------------
+
 query = (
     clean_df.writeStream
         .foreachBatch(write_to_pg)
@@ -85,3 +69,4 @@ query = (
 )
 
 query.awaitTermination()
+
